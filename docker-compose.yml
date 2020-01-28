@@ -2,37 +2,9 @@
 version: '3.7'
 services:
 
-  tor:
-    image: goldy/tor-hidden-service
-    links:
-    - web
-    # volumes:
-    #- ./tor_keys:/var/lib/tor/hidden_service/
-    environment:
-      # PROXY_MAP: 8081:8081 # first port is exposed port and the second one is service internal port.
-      # Set mapping ports
-      SERVICE_TOR_SERVICE_HOSTS: 80:web:80
-      # Set private key
-      SERVICE_TOR_SERVICE_KEY: |
-        -----BEGIN RSA PRIVATE KEY-----
-        MIICXQIBAAKBgQDAvxO/JGtQqqvSBdxvH1ifxNmS6EbTe/ptSTYLshyu0RNcG32d
-        f9KGHP3iOvoPQ1JYjvZlOaU1wOFW64oAiZjZhH8M6pQ+9uIz5v3KEe7HXWL052t0
-        oZzXKGH7JM0v8h29Eng42i52/P0tnK5l8lEdc/zjjfP5efMG8+dNEJNrDwIDAQAB
-        AoGADoUWbrrGntAMm4i3f2OEIJ0Kqud2lm3rgpoWSTFEueKkK7cicl/zswiyE33P
-        4qB2rpcudpeuG2uJTiv2PG4hJngtHEi0UEybJSnInZEEOVVokN/5zhCzirGOp+k3
-        7c1MZ3BocIfVQTtu2jKzBzSk2FkgJYiGEZSYmLehK2JJc/ECQQDQnYoL0JKefcgZ
-        s1c8wLuEBrteCtmomiSCK8WHydjpMFOqC0+ysoHTqQBlCwLBIkKFfQJ6v2H+lXha
-        6Nk70icpAkEA7IbLu9YHdK5gPggO4OjbEvl7NOzDSdGFOHjRE4GaEcicBsq3du9G
-        sOvDWyVjhS7Nwy0jkW/oFFLb5jWfrONfdwJBAK8b/ftK2TemdydzjX+WfBAnonEf
-        BHLs6EZHvafse2HJygCLPBvQkP989bLbGjXJrzLjqwgjy3rqNjuBBo+bKHkCQFUw
-        J2i7qWvI8jjlRhaTR3QKDun87ElGASlZulPANfF5w1he4r0faOKHx5CoYrOxK8LE
-        Gy9ikr/fJ/w+DAiEy/kCQQCgHW6qtsppmhSMFDFdXFBa0DQcpddkqY2BRMYl0vA3
-        W+0VPF/w88+q8037SzqtPgwsaKfa4lALHlP84XWUYXDK
-        -----END RSA PRIVATE KEY-----
-
   prestashop:
     build: 
-      context: ./prestashop
+      context: ./.docker/prestashop
       dockerfile: Dockerfile
     container_name: prestashop
     environment:
@@ -66,11 +38,11 @@ services:
     - app:/app
     depends_on:
     - db
-    # restart: unless-stopped
+    restart: unless-stopped
 
   web:
     build: 
-      context: ./web
+      context: ./.docker/web
       dockerfile: Dockerfile
     container_name: web
     environment:
@@ -84,7 +56,7 @@ services:
     - app:/app:ro
     depends_on:
     - prestashop
-    # restart: unless-stopped
+    restart: unless-stopped
 
   db:
     image: mariadb:latest
@@ -97,14 +69,14 @@ services:
     ports:
     - "3306:3306"
     volumes:
-    - ./db/config:/etc/mysql/conf.d
+    - ./.config/db:/etc/mysql/conf.d
     - db-data:/var/lib/mysql
-    # restart: unless-stopped
+    restart: unless-stopped
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:alpine3.10
     build:
-      context: phpmyadmin
+      context: .docker/phpmyadmin
       dockerfile: Dockerfile
     container_name: phpmyadmin
     environment:
