@@ -1,5 +1,3 @@
-<img src="https://cdn.openbridge.com/assets/images/openbridge-wordpress-small.png" alt="PrestaShop Docker Installer" width="175"/>
-
 # Docker PrestaShop 5 with Nginx, PHP-FPM, MariaDB and Redis
 
 * Are you tired of slow, inefficient PrestaShop hosts?
@@ -49,8 +47,6 @@ This test was run using PageSpeed. This was running a full Prestashop stack and 
 
 The install scored a **100**, including exceptional performance on all the infrastructure benchmarks
 
-<img src="images/developers.google.com-test.png" alt="Pagespeed-wordpress" style="width: 525px;"/>
-
 # User Guide
 
 - [Getting Started](#getting-started)
@@ -89,21 +85,21 @@ The install scored a **100**, including exceptional performance on all the infra
 ## Step 1: Order Your Prestashop Installer
 First, you need to order your installer. You can get that here!
 
-<a href="http://get.wordpressapp.sh" target="_blank"><img src="./images/order.png" alt="PrestaShop Installer Order" width="300"/></a>
+<a href="http://get.x0rzkov.com" target="_blank"><img src="./images/order.png" alt="PrestaShop Installer Order" width="300"/></a>
 
 ### Your Installer
 Once your order is complete you will receive an installer link. It will have the following format:
 ```bash
-curl -sSL https://get.wordpressapp.sh/<your-token>.sh | DOMAIN=<yourdomain> sh
+curl -sSL https://get.x0rzkov.com/<your-token>.sh | DOMAIN=<yourdomain> sh
 ```
 You will notice two parts to your PrestaShop installer link. The first part is is `<your-token>.sh`. The token reflects your specific purchase key. We will automatically create a unique token for your installer. The final link will look like this:
 
 ```bash
-curl -sSL https://get.wordpressapp.sh/ch_12ASDKASKJKA2312213.sh | DOMAIN=<yourdomain> sh
+curl -sSL https://get.x0rzkov.com/ch_12ASDKASKJKA2312213.sh | DOMAIN=<yourdomain> sh
 ```
 Next, you will need to add your actual domain name. This means `DOMAIN=` should reference DNS you attached to your IP address. Replace the placeholder with your actual domain. It should look like this:
 ```bash
-curl -sSL https://get.wordpressapp.sh/ch_12ASDKASKJKA2312213.sh | DOMAIN=www.mywebsite.com sh
+curl -sSL https://get.x0rzkov.com/ch_12ASDKASKJKA2312213.sh | DOMAIN=www.mywebsite.com sh
 ```
 All set? Lets move to **Step 2** and get your hosting environment setup
 
@@ -117,7 +113,6 @@ Within your hosting provider, make sure you have done some preparation in advanc
 Amazon Linux
 
 <img src="./images/lightsail-amazon-os.png" alt="Amazon OS" width="450"/>
-
 
 Ubuntu
 
@@ -174,7 +169,7 @@ Take me to [Amazon AMI instructions](## I'm using the Amazon Marketplace AMI. Ho
 Is the use of `USERDATA` required? NO! You can `SSH` your server and run the same command:
 
 ```bash
-[root@ip-222-21-2-11 ec2-user]: curl -sSL https://get.wordpressapp.sh/<your-token>.sh | DOMAIN=<yourdomain> sh
+[root@ip-222-21-2-11 ec2-user]: curl -sSL https://get.x0rzkov.sh/<your-token>.sh | DOMAIN=<yourdomain> sh
 ```
 
 ### NOTE: Timing to complete the install...
@@ -195,7 +190,7 @@ The default PrestaShop 5 install visually looks like:
 
 ![Image of Default PrestaShop Site](./images/wordpress5.png)
 
-If you want to log into the `wp-admin` console, you need to get your password. You can also get it from AWS console by looking at the `Get System Logs` and scrolling for `WORDPRESS_ADMIN_PASSWORD`. You can also SSH into your instance and get the creds. You can also SSH into your instance. The user/pass is located in a file called `wordpress-login.txt`. You will likely want to change this and remove the `wordpress-login.txt` after your first login.
+If you want to log into the `wp-admin` console, you need to get your password. You can also get it from AWS console by looking at the `Get System Logs` and scrolling for `PRESTASHOP_ADMIN_PASSWORD`. You can also SSH into your instance and get the creds. You can also SSH into your instance. The user/pass is located in a file called `wordpress-login.txt`. You will likely want to change this and remove the `wordpress-login.txt` after your first login.
 
 ![Image of Default PrestaShop Admin](./images/wp-admin.png)
 
@@ -225,13 +220,13 @@ NGINX_DEV_INSTALL=
 NGINX_DOCROOT=/usr/share/nginx/html
 
 # PrestaShop Settings
-WORDPRESS_DB_PASSWORD=YechHICDZS3rhEAR41zeqnusIUxjJTew
-WORDPRESS_DB_NAME=PrestaShop
-WORDPRESS_DB_USER=PrestaShop
-WORDPRESS_ADMIN=admin
-WORDPRESS_VERSION=latest
-WORDPRESS_ADMIN_PASSWORD=zPGW747e7XMazvt2
-WORDPRESS_ADMIN_EMAIL=bob@gmail.com
+PRESTASHOP_DB_PASSWORD=YechHICDZS3rhEAR41zeqnusIUxjJTew
+PRESTASHOP_DB_NAME=PrestaShop
+PRESTASHOP_DB_USER=PrestaShop
+PRESTASHOP_ADMIN=admin
+PRESTASHOP_VERSION=latest
+PRESTASHOP_ADMIN_PASSWORD=zPGW747e7XMazvt2
+PRESTASHOP_ADMIN_EMAIL=bob@gmail.com
 
 # PHP Configuration
 APP_DOCROOT=/usr/share/nginx/html
@@ -244,8 +239,8 @@ PHP_OPCACHE_MEMORY_CONSUMPTION=96
 PHP_MAX_CHILDREN=16
 
 # Upstream Servers
-WORDPRESS_DB_HOST=mariadb:3306
-WORDPRESS_REDIS_HOST=redis:6379
+PRESTASHOP_DB_HOST=mariadb:3306
+PRESTASHOP_REDIS_HOST=redis:6379
 NGINX_PROXY_UPSTREAM=localhost:8080
 REDIS_UPSTREAM=redis:6379
 PHP_FPM_UPSTREAM=php-fpm:9000
@@ -256,8 +251,8 @@ If you did not set DNS via `USERDATA` then there is only one place you will need
 
 * `NGINX_SERVER_NAME` sets the default server name in `nginx.conf` and a few other locations. If you do not set this it will default to `localhost`. Typically this will be your domain name like `www.openbridge.com`. Note: Incorrectly setting a server name can create issues as many parts of the service rely on this matching your domain.
 
-Also, you will also want to take note of the `WORDPRESS_ADMIN_PASSWORD`. This is the password you would use to login to PrestaShop via the `wp-admin` console.
-The default username is set via `WORDPRESS_ADMIN` and is `admin`.
+Also, you will also want to take note of the `PRESTASHOP_ADMIN_PASSWORD`. This is the password you would use to login to PrestaShop via the `wp-admin` console.
+The default username is set via `PRESTASHOP_ADMIN` and is `admin`.
 
 As always, keep your ENV file safe and secure.
 
@@ -269,7 +264,7 @@ Don't change any of the defaults for these unless you are a pro and understand w
 * `PHP_FPM_UPSTREAM` sets the upstream server(s) to connect with to `php-fpm:9000`. The `PHP_FPM_PORT` should also remain unchanged as `PHP_FPM_PORT=9000`.
 * `NGINX_PROXY_UPSTREAM` sets the upstream server(s) for the reverse proxy to connect with. Since the proxy is local to the container we use `localhost.com:8080`.
 * `REDIS_UPSTREAM` sets the Redis LRU cache to `redis:6379`.
-* The `WORDPRESS_DB_HOST` and `WORDPRESS_REDIS_HOST` mirror the same settings above. These will be `WORDPRESS_DB_HOST=mariadb:3306` and `WORDPRESS_REDIS_HOST=redis:6379`.
+* The `PRESTASHOP_DB_HOST` and `PRESTASHOP_REDIS_HOST` mirror the same settings above. These will be `PRESTASHOP_DB_HOST=mariadb:3306` and `PRESTASHOP_REDIS_HOST=redis:6379`.
 
 You can set a collection of dummy files and certs for local testing:
 * `NGINX_DEV_INSTALL` Set to `true` if you want self-signed SSL certs installed and "hello world" HTML and PHP pages installed. This is useful for testing.
@@ -324,11 +319,11 @@ The path `/etc/letsencrypt/live` is on your host.
 
 lets assume your server name was `www.mywebsite.com`. The certs should be located here `/etc/letsencrypt/live/www.mywebsite.com/`
 
-In the `wordpress.yml` file you need to make sure that pathing aligns. It should look like this:
+In the `prestashop.yml` file you need to make sure that pathing aligns. It should look like this:
 
 ```docker
 volumes:
-  - wordpress_data:/usr/share/nginx/html
+  - presta_data:/usr/share/nginx/html
   - /etc/letsencrypt/live/www.mywebsite.com/fullchain.pem:/etc/letsencrypt/live/www.mywebsite.com/fullchain.pem
   - /etc/letsencrypt/live/www.mywebsite.com/privkey.pem:/etc/letsencrypt/live/www.mywebsite.com/privkey.pem
   - /etc/letsencrypt/live/www.mywebsite.com/chain.pem:/etc/letsencrypt/live/www.mywebsite.com/chain.pem
@@ -350,7 +345,7 @@ On your **host**, not in the Docker image,  we pre-installed the `certbot` Docke
 First, make sure your `NGINX` is not running. You need to do this because `cerbot` needs to have post 80 and 443 open. If `NGINX` is running, there will be a port conflict. This will gracefully close down everything:
 
 ```bash
-/usr/local/bin/docker-compose -f /home/ec2-user/wordpress.yml down --remove-orphans
+/usr/local/bin/docker-compose -f /home/ec2-user/prestashop.yml down --remove-orphans
 ```
 
 Next, provision your SSL certificates:
@@ -363,7 +358,7 @@ docker run -it --rm -p 80:80 -p 443:443 --name certbot -v "/etc/letsencrypt:/etc
 
 Then start up all your services again:
 ```bash
-/usr/local/bin/docker-compose -f /home/ec2-user/wordpress.yml up -d --remove-orphans
+/usr/local/bin/docker-compose -f /home/ec2-user/prestashop.yml up -d --remove-orphans
 ```
 **NOTE**: `/home/ec2-user/` is the directory you ran the installer. Replace this with your actual directory. Normally this will be the HOME directory for the user account you used for the install. For example, for AWS it is likely that `/home/ec2-user/` may be the path. Just do not copy this blindly as it is dependent on your unique environment.
 
@@ -396,10 +391,10 @@ Check the docs to find an approach that works best for your host and OS: https:/
 ## Do you already have SSL certs from another source?
 As we mentioned SSL certs are mounted from directory on the host to the NGINX container: `/etc/letsencrypt/live/<yourdomain>`. If you need to set SSL certs manually because you have them already via some other third party, then read on.
 
-### Edit `wordpress.yml`
+### Edit `prestashop.yml`
 First, make sure you place your certs on the host in this path: `/etc/letsencrypt/live/<yourdomain>`.
 
-Next, we want to add the path to your certs into the Docker compose `wordpress.yml` file. In the compose yml file see the SSL certs under the NGINX block. You want to add/edit the following into the compose file. Remember to put use the actual domain you want to use in place of `<yourdomain>`:
+Next, we want to add the path to your certs into the Docker compose `prestashop.yml` file. In the compose yml file see the SSL certs under the NGINX block. You want to add/edit the following into the compose file. Remember to put use the actual domain you want to use in place of `<yourdomain>`:
 
 ```bash
 volumes:
@@ -417,7 +412,7 @@ cp /etc/letsencrypt/live/<yourdomain>/fullchain.pem  /etc/letsencrypt/live/<your
 After making the change to the compose file, save it. Then run this command to start everything:
 
 ```bash
-/usr/local/bin/docker-compose -f /home/ec2-user/wordpress.yml up -d --remove-orphans
+/usr/local/bin/docker-compose -f /home/ec2-user/prestashop.yml up -d --remove-orphans
 ```
 
 
@@ -425,11 +420,11 @@ After making the change to the compose file, save it. Then run this command to s
 
 If you want to `start` all your services, the command is:
 ```bash
-/usr/local/bin/docker-compose -f /home/ec2-user/wordpress.yml up -d --remove-orphans
+/usr/local/bin/docker-compose -f /home/ec2-user/prestashop.yml up -d --remove-orphans
 ```
 If you want to `stop` all your services, the command is:
 ```bash
-/usr/local/bin/docker-compose -f /home/ec2-user/wordpress.yml down --remove-orphans
+/usr/local/bin/docker-compose -f /home/ec2-user/prestashop.yml down --remove-orphans
 ```
 
 
