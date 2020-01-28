@@ -7,7 +7,7 @@ options:
 syncs:
   #IMPORTANT: ensure this name is unique and does not match your other container names
   #REFERENCE: https://github.com/EugenMayer/docker-sync/blob/master/example/docker-sync.yml#L32 
-  app:
+  presta-src:
     notify_terminal: false
     src: ${PWD}/htdocs # host source directory
     sync_strategy: 'native_osx' # for osx use 'native_osx', for windows use 'unison'
