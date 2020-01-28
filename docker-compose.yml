@@ -1,0 +1,129 @@
+---
+version: '3.7'
+services:
+
+  tor:
+    image: goldy/tor-hidden-service
+    links:
+    - web
+    # volumes:
+    #- ./tor_keys:/var/lib/tor/hidden_service/
+    environment:
+      # PROXY_MAP: 8081:8081 # first port is exposed port and the second one is service internal port.
+      # Set mapping ports
+      SERVICE_TOR_SERVICE_HOSTS: 80:web:80
+      # Set private key
+      SERVICE_TOR_SERVICE_KEY: |
+        -----BEGIN RSA PRIVATE KEY-----
+        MIICXQIBAAKBgQDAvxO/JGtQqqvSBdxvH1ifxNmS6EbTe/ptSTYLshyu0RNcG32d
+        f9KGHP3iOvoPQ1JYjvZlOaU1wOFW64oAiZjZhH8M6pQ+9uIz5v3KEe7HXWL052t0
+        oZzXKGH7JM0v8h29Eng42i52/P0tnK5l8lEdc/zjjfP5efMG8+dNEJNrDwIDAQAB
+        AoGADoUWbrrGntAMm4i3f2OEIJ0Kqud2lm3rgpoWSTFEueKkK7cicl/zswiyE33P
+        4qB2rpcudpeuG2uJTiv2PG4hJngtHEi0UEybJSnInZEEOVVokN/5zhCzirGOp+k3
+        7c1MZ3BocIfVQTtu2jKzBzSk2FkgJYiGEZSYmLehK2JJc/ECQQDQnYoL0JKefcgZ
+        s1c8wLuEBrteCtmomiSCK8WHydjpMFOqC0+ysoHTqQBlCwLBIkKFfQJ6v2H+lXha
+        6Nk70icpAkEA7IbLu9YHdK5gPggO4OjbEvl7NOzDSdGFOHjRE4GaEcicBsq3du9G
+        sOvDWyVjhS7Nwy0jkW/oFFLb5jWfrONfdwJBAK8b/ftK2TemdydzjX+WfBAnonEf
+        BHLs6EZHvafse2HJygCLPBvQkP989bLbGjXJrzLjqwgjy3rqNjuBBo+bKHkCQFUw
+        J2i7qWvI8jjlRhaTR3QKDun87ElGASlZulPANfF5w1he4r0faOKHx5CoYrOxK8LE
+        Gy9ikr/fJ/w+DAiEy/kCQQCgHW6qtsppmhSMFDFdXFBa0DQcpddkqY2BRMYl0vA3
+        W+0VPF/w88+q8037SzqtPgwsaKfa4lALHlP84XWUYXDK
+        -----END RSA PRIVATE KEY-----
+
+  prestashop:
+    build: 
+      context: ./prestashop
+      dockerfile: Dockerfile
+    container_name: prestashop
+    environment:
+      PS_DOMAIN: "kgeaybcqmclodfed.onion:8081"
+      DB_SERVER: db
+      DB_PORT: "3306"
+      DB_USER: prestashop
+      DB_PASSWORD: prestashop
+      DB_NAME: prestashop
+      DB_CLEAR: '0'
+      DB_CREATE: '1'
+      DB_PREFIX: "ps_"
+      PS_DIR_INSTALL: install1234
+      PS_DIR_ADMIN: admin1234
+      PS_LANGUAGE: it
+      PS_TIMEZONE: "Europe/Rome"
+      PS_SHOP_NAME: "test shop"
+      PS_SHOP_COUNTRY: it
+      PS_FIRSTNAME: John
+      PS_LASTNAME: Doe
+      PS_PASSWORD: testshop123
+      PS_EMAIL: "jdoe@foo.bar"
+      PS_NEWSLETTER: '0'
+      PS_SSL: '0'
+      PHP_MEMORY_LIMIT: 256M
+      PHP_MAX_EXECUTION_TIME: "200"
+      PHP_MAX_INPUT_TIME: "60"
+    expose:
+    - "9000"
+    volumes:
+    - app:/app
+    depends_on:
+    - db
+    # restart: unless-stopped
+
+  web:
+    build: 
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: web
+    environment:
+      PS_DOMAIN: "localhost:8081"
+      PS_DIR_INSTALL: install1234
+      PS_DIR_ADMIN: admin1234
+    ports:
+    - "8081:80"
+    # - "443:443"
+    volumes:
+    - app:/app:ro
+    depends_on:
+    - prestashop
+    # restart: unless-stopped
+
+  db:
+    image: mariadb:latest
+    container_name: db
+    environment:
+      MYSQL_ROOT_PASSWORD: supercow
+      MYSQL_DATABASE: prestashop
+      MYSQL_USER: prestashop
+      MYSQL_PASSWORD: prestashop
+    ports:
+    - "3306:3306"
+    volumes:
+    - ./db/config:/etc/mysql/conf.d
+    - db-data:/var/lib/mysql
+    # restart: unless-stopped
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:alpine3.10
+    build:
+      context: phpmyadmin
+      dockerfile: Dockerfile
+    container_name: phpmyadmin
+    environment:
+    - pma_arbitrary=1
+    - pma_host=mariadb
+    depends_on:
+    - db
+    ports:
+    - 8081:80
+
+  # ftp:
+  #   image: atmoz/sftp:alpine
+  #   ports:
+  #   - "2222:22"
+  #   volumes:
+  #   - app:/app
+  #   command: php:prestashop:1000
+
+volumes:
+    app:
+      external: true
+    db-data:
