@@ -59,7 +59,7 @@ services:
     restart: unless-stopped
 
   db:
-    image: mariadb:latest
+    image: mysql:5.7
     container_name: db
     environment:
       MYSQL_ROOT_PASSWORD: supercow
@@ -76,7 +76,7 @@ services:
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:alpine3.10
     build:
-      context: phpmyadmin
+      context: .docker/phpmyadmin
       dockerfile: Dockerfile
     container_name: phpmyadmin
     environment:
