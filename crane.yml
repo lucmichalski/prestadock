@@ -1,0 +1,17 @@
+---
+services:
+  prestashop:
+    volume: 
+    - ./htdocs:/app
+    workdir: /app
+
+groups:
+  shop:
+  - prestashop
+  - web
+  - db
+
+accelerated-mounts:
+  "${PWD}/app:/app":
+    uid: 1000
+    gid: 1000
