@@ -6,45 +6,47 @@ services:
     build: 
       context: ./.docker/prestashop
       dockerfile: Dockerfile
-    container_name: prestashop
+    container_name: ${NAMESPACE}_ps
     environment:
-      PS_DOMAIN: "kgeaybcqmclodfed.onion:8081"
-      DB_SERVER: db
-      DB_PORT: "3306"
-      DB_USER: prestashop
-      DB_PASSWORD: prestashop
-      DB_NAME: prestashop
-      DB_CLEAR: '0'
-      DB_CREATE: '1'
-      DB_PREFIX: "ps_"
-      PS_DIR_INSTALL: install1234
-      PS_DIR_ADMIN: admin1234
-      PS_LANGUAGE: it
-      PS_TIMEZONE: "Europe/Rome"
-      PS_SHOP_NAME: "test shop"
-      PS_SHOP_COUNTRY: it
-      PS_FIRSTNAME: John
-      PS_LASTNAME: Doe
-      PS_PASSWORD: testshop123
-      PS_EMAIL: "jdoe@foo.bar"
-      PS_NEWSLETTER: '0'
-      PS_SSL: '0'
-      PHP_MEMORY_LIMIT: 256M
-      PHP_MAX_EXECUTION_TIME: "200"
-      PHP_MAX_INPUT_TIME: "60"
+      PS_DOMAIN: ${DOMAIN}
+      DB_SERVER: ${PS_DB_SERVER}
+      DB_PORT: ${PS_DB_PORT}
+      DB_USER: ${PS_DB_USER}
+      DB_PASSWORD: ${PS_DB_PASSWORD}
+      DB_NAME: ${PS_DB_NAME}
+      DB_CLEAR: ${PS_DB_CLEAR}
+      DB_CREATE: ${PS_DB_CREATE}
+      DB_PREFIX: ${PS_DB_PREFIX}
+      PS_DIR_INSTALL: ${PS_DIR_INSTALL}
+      PS_DIR_ADMIN: ${PS_DIR_ADMIN}
+      PS_LANGUAGE: ${PS_LANGUAGE}
+      PS_TIMEZONE: ${TZ}
+      PS_SHOP_NAME: ${PS_SHOP_NAME}
+      PS_SHOP_COUNTRY: ${PS_SHOP_COUNTRY}
+      PS_FIRSTNAME: ${PS_FIRSTNAME}
+      PS_LASTNAME: ${PS_LASTNAME}
+      PS_PASSWORD: ${PS_PASSWORD}
+      PS_EMAIL: ${PS_EMAIL}
+      PS_NEWSLETTER: ${PS_NEWSLETTER}
+      PS_SSL: ${SSL}
+      PHP_MEMORY_LIMIT: ${PHP_MEMORY_LIMIT}
+      PHP_MAX_EXECUTION_TIME: ${PHP_MAX_EXECUTION_TIME}
+      PHP_MAX_INPUT_TIME: ${PHP_MAX_INPUT_TIME}
     expose:
     - "9000"
     volumes:
-    - app:/app
+    - presta-src:/app
     depends_on:
     - db
     restart: unless-stopped
+    networks:
+    - internal
 
   web:
     build: 
       context: ./.docker/web
       dockerfile: Dockerfile
-    container_name: web
+    container_name: ${NAMESPACE}_web
     environment:
       PS_DOMAIN: "localhost:8081"
       PS_DIR_INSTALL: install1234
@@ -53,14 +55,17 @@ services:
     - "8081:80"
     # - "443:443"
     volumes:
-    - app:/app:ro
+    - presta-src:/app:ro
     depends_on:
     - prestashop
     restart: unless-stopped
+    networks:
+    - internal
+    - web
 
   db:
-    image: mariadb:latest
-    container_name: db
+    image: mysql:5.7
+    container_name: ${NAMESPACE}_db
     environment:
       MYSQL_ROOT_PASSWORD: supercow
       MYSQL_DATABASE: prestashop
@@ -72,30 +77,95 @@ services:
     - ./.config/db:/etc/mysql/conf.d
     - db-data:/var/lib/mysql
     restart: unless-stopped
+    networks:
+    - internal
 
-  phpmyadmin:
+  backup:
+    image: zeenlym/mariadb-backup
+    container_name: ${NAMESPACE}_backup
+    depends_on:
+    - mysql
+    restart: unless-stopped
+    environment:
+    - TIMEZONE=${TZ}
+    - SCHEDULE=0 0 3 * *
+    - BACKUP_METHOD=mysqldump
+    - MYSQL_HOST=${PS_DB_SERVER}
+    - MYSQL_DATABASE=${PS_DB_NAME}
+    - MYSQL_USER=${PS_DB_USER}
+    - MYSQL_PASSWORD=${PS_DB_PASSWORD}
+    volumes:
+    - ${MYSQL_BACKUP_DIR}:/backup
+    restart: always
+    networks:
+    - internal
+
+  pma:
     image: phpmyadmin/phpmyadmin:alpine3.10
     build:
       context: .docker/phpmyadmin
       dockerfile: Dockerfile
-    container_name: phpmyadmin
+    container_name: ${NAMESPACE}_pma
     environment:
-    - pma_arbitrary=1
-    - pma_host=mariadb
+    - PMA_ARBITRARY=1
+    - PMA_PORT=3306
+    - PMA_HOSTS=${PS_DB_SERVER}
+    - UPLOAD_LIMIT=${PHP_UPLOAD_LIMIT}
+    - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
     depends_on:
-    - db
+    - mysql
     ports:
-    - 8081:80
+    - 8082:80
+    restart: always
+    networks:
+    - internal
+    - web
 
-  # ftp:
-  #   image: atmoz/sftp:alpine
-  #   ports:
-  #   - "2222:22"
-  #   volumes:
-  #   - app:/app
-  #   command: php:prestashop:1000
+  memcached:
+    image: memcached:alpine
+    container_name: ${NAMESPACE}_memcached 
+    restart: always
+    ports:
+    - "11211:11211"
+    networks:
+    - internal
+    command: -m 2048
+    restart: always
+
+  redis:
+    image: redis:5-alpine
+    container_name: ${NAMESPACE}_redis 
+    restart: always
+    ports:
+    - "6379:6379"
+    networks:
+    - internal
+
+  imaginary:
+    image: h2non/imaginary:latest
+    container_name: ${NAMESPACE}_imaginary
+    volumes:
+    - imaginary-data:/mnt/data
+    environment:
+       PORT: 9002
+    ports:
+    - "9002:9002"
+    command: -cors -gzip -enable-url-source -mount /mnt/data
+    networks:
+    - internal
+    - web
+    restart: always
+
+networks:
+  internal:
+  web:
+    external: true
 
 volumes:
-    app:
+    presta-src:
       external: true
+      #driver_opts:
+      #  type: none
+      #  o: bind
+      #  device: ./${WORKDIR}
     db-data:
